@@ -56,11 +56,10 @@ end
 
 function checkHand()
     if (G.STATE ~= G.STATES.MENU and G.hand.cards ~= nil) then
-        -- ALSO ADD SPECIAL COMBOS LIKE FIVE_OF_A_KIND ETC.
+        -- Add Flush House and check Flush Five
 
-        -- hasStraightFlush() --Put in hasStraight()??
         hasFlush()
-        hasStraight()
+        hasStraight() --Straight, Straight-Flush (No Royal Flush)
         hasPairs() -- Two pair, Set, Full House, Four+Five of a kind
     end
 end
@@ -82,19 +81,55 @@ function hasPairs()
         ["2"] = 0
     }
 
-    comboCounter = {
+    local suitsCounter = {
+        ["Ace"] = {},
+        ["King"] = {},
+        ["Queen"] = {},
+        ["Jack"] = {},
+        ["10"] = {},
+        ["9"] = {},
+        ["8"] = {},
+        ["7"] = {},
+        ["6"] = {},
+        ["5"] = {},
+        ["4"] = {},
+        ["3"] = {},
+        ["2"] = {}
+    }
+
+    local comboCounter = {
         ["Pair"] = {},
         ["Set"] = {}
     }
 
+    local suits = {"Hearts", "Diamonds", "Spades", "Clubs"}
+
     for i = 1, #G.hand.cards do
         counter[G.hand.cards[i].base.value] = counter[G.hand.cards[i].base.value] + 1
+        table.insert(suitsCounter[G.hand.cards[i].base.value], G.hand.cards[i].base.suit)
     end
 
     for value, count in pairs(counter) do
         repeat
             if (count >= 5) then
-                table.insert(combos, "Five of a kind: " .. value .. 's')
+                local suitCounter = 0
+                for i = 1, #suits do
+                    for i = 1, #suitsCounter[value] do
+                        if (suitsCounter[value][i] == suits[i]) then
+                            suitCounter = suitCounter + 1
+                        end
+                    end
+                    if (suitCounter == 5) then
+                        break
+                    else 
+                        suitCounter = 0
+                    end
+                end
+                if (suitCounter >= 5) then
+                    table.insert(combos, "Flush Five: " .. value .. 's')
+                else
+                    table.insert(combos, "Five of a kind: " .. value .. 's')
+                end
             end
             if (count >= 4) then
                 table.insert(combos, "Four of a kind: " .. value .. 's')
@@ -189,6 +224,24 @@ function hasStraight()
         ["2"] = 0
     }
 
+    local counterSuits = {
+        ["Ace"] = {},
+        ["King"] = {},
+        ["Queen"] = {},
+        ["Jack"] = {},
+        ["10"] = {},
+        ["9"] = {},
+        ["8"] = {},
+        ["7"] = {},
+        ["6"] = {},
+        ["5"] = {},
+        ["4"] = {},
+        ["3"] = {},
+        ["2"] = {}
+    }
+
+    local suits = {"Spades", "Hearts", "Clubs", "Diamonds"}
+
     local keys = {}
     for k in pairs(counter) do
         table.insert(keys, k)
@@ -198,25 +251,47 @@ function hasStraight()
 
     for i = 1, #G.hand.cards do
         counter[G.hand.cards[i].base.value] = counter[G.hand.cards[i].base.value] + 1
+        table.insert(counterSuits[G.hand.cards[i].base.value], G.hand.cards[i].base.suit)
     end
 
     local straightLength = 0
-    local straight = {}
+    straight = {}
+    local suitCount = 0
 
     for _, key in ipairs(keys) do
         if (straightLength == 5) then
-            table.insert(combos, "Straight: " .. straight[1] .. ',' .. straight[2] .. ',' .. straight[3] .. ',' ..
-                straight[4] .. ',' .. straight[5])
-            break
+            for i = 1, #suits do
+                for j = 1, #straight do
+                    for k = 1, #counterSuits[straight[j]] do
+                        repeat
+                            if (counterSuits[straight[j]][k] == suits[i]) then
+                                suitCount = suitCount + 1
+                                break
+                            end
+                        until true
+                    end
+                end
+                if (suitCount >= 5) then
+                    table.insert(combos,
+                        "Straight-Flush: " .. straight[1] .. ',' .. straight[2] .. ',' .. straight[3] .. ',' ..
+                            straight[4] .. ',' .. straight[5])
+                    table.remove(straight, 1)
+                    straightLength = straightLength - 1
+                    suitCount = 0
+                else
+                    suitCount = 0
+                end
+            end
+            if (straightLength == 5) then
+                table.insert(combos, "Straight: " .. straight[1] .. ',' .. straight[2] .. ',' .. straight[3] .. ',' ..
+                    straight[4] .. ',' .. straight[5])
+                table.remove(straight, 1)
+                straightLength = straightLength - 1
+            end
         end
         if (counter[key] > 0) then
             straightLength = straightLength + 1
-            if (key == "Jack" or key == "Queen" or key == "King" or key == "Ace") then
-                table.insert(straight, string.sub(key, 1, 1))
-
-            else
-                table.insert(straight, key)
-            end
+            table.insert(straight, key)
         else
             straightLength = 0
             straight = {}
@@ -227,30 +302,36 @@ function hasStraight()
                 straight[4] .. ',' .. straight[5])
         end
     end
-
 end
 
 function calculate()
-    if (G.STATE ~= G.STATES.MENU and G.hand.cards ~= nil) then
-        probabilities = {}
-        cards = G.hand.cards
+    if (G.STATE ~= G.STATES.MENU and handCards ~= nil and deckCards ~= nil) then
+
     end
+end
+
+function pairProb()
+
 end
 
 local sec_ref = CardArea.align_cards
 function CardArea.align_cards(self)
     sec_ref(self)
 
+    -- local handCards = G.hand.cards
+    -- local deckCards = G.deck.cards
+
+    probabilities = {}
     combos = {}
+
     checkHand()
-    calculate()
 end
 
 local card_ref = Card.click
 function Card.click(self)
 
     if self.area and self.area:can_highlight(self) then
-
+        calculate()
     end
 
     card_ref(self)
