@@ -11,39 +11,23 @@ function love.draw(self)
 
     if (G.hand ~= nil) then
         -- Display overlay boxes
-        local combo_box = "----------------------------\n" .. 
-                          "|                           |\n" .. 
-                          "|                           |\n" ..
-                          "|                           |\n" .. 
-                          "|                           |\n" ..
-                          "|                           |\n" .. 
-                          "|                           |\n" ..
-                          "|                           |\n" .. 
-                          "|                           |\n" ..
-                          "|                           |\n" .. 
-                          "|                           |\n" ..
-                          "|                           |\n" .. 
-                          "|                           |\n" ..
-                          "----------------------------\n"
+        local combo_box = "----------------------------\n" .. "|                           |\n" ..
+                              "|                           |\n" .. "|                           |\n" ..
+                              "|                           |\n" .. "|                           |\n" ..
+                              "|                           |\n" .. "|                           |\n" ..
+                              "|                           |\n" .. "|                           |\n" ..
+                              "|                           |\n" .. "|                           |\n" ..
+                              "|                           |\n" .. "----------------------------\n"
 
-        local probabilities_box = "----------------------------\n" .. 
-                                  "|                           |\n" ..
-                                  "|                           |\n" .. 
-                                  "|                           |\n" ..
-                                  "|                           |\n" .. 
-                                  "|                           |\n" ..
-                                  "|                           |\n" .. 
-                                  "|                           |\n" ..
-                                  "|                           |\n" .. 
-                                  "|                           |\n" ..
-                                  "|                           |\n" .. 
-                                  "|                           |\n" ..
-                                  "|                           |\n" .. 
-                                  "|                           |\n" ..
-                                  "|                           |\n" .. 
-                                  "|                           |\n" ..
-                                  "|                           |\n" .. 
-                                  "----------------------------\n"
+        local probabilities_box = "----------------------------\n" .. "|                           |\n" ..
+                                      "|                           |\n" .. "|                           |\n" ..
+                                      "|                           |\n" .. "|                           |\n" ..
+                                      "|                           |\n" .. "|                           |\n" ..
+                                      "|                           |\n" .. "|                           |\n" ..
+                                      "|                           |\n" .. "|                           |\n" ..
+                                      "|                           |\n" .. "|                           |\n" ..
+                                      "|                           |\n" .. "|                           |\n" ..
+                                      "|                           |\n" .. "----------------------------\n"
 
         -- Insert other states too
         if (G.STATE ~= G.STATES.SHOP and G.STATE ~= G.STATES.BLIND_SELECT) then
@@ -74,14 +58,14 @@ function checkHand()
     if (G.STATE ~= G.STATES.MENU and G.hand.cards ~= nil) then
         -- ALSO ADD SPECIAL COMBOS LIKE FIVE_OF_A_KIND ETC.
 
-        -- hasStraightFlush() --Put in hasStraight()
+        -- hasStraightFlush() --Put in hasStraight()??
         hasFlush()
         hasStraight()
-        hasPair()
+        hasPairs() -- Two pair, Set, Full House, Four+Five of a kind
     end
 end
 
-function hasPair()
+function hasPairs()
     local counter = {
         ["Ace"] = 0,
         ["King"] = 0,
@@ -128,19 +112,22 @@ function hasPair()
     for i = 1, #comboCounter["Set"] do
         for j = 1, #comboCounter["Pair"] do
             if (comboCounter["Set"][i] ~= comboCounter["Pair"][j]) then
-                table.insert(combos, "Full House: " .. "3x" .. comboCounter["Set"][i] .. " + " .. "2x" .. comboCounter["Pair"][j])
+                table.insert(combos, "Full House: " .. "3x" .. comboCounter["Set"][i] .. " + " .. "2x" ..
+                    comboCounter["Pair"][j])
             end
         end
     end
     for i = 1, #comboCounter["Set"] - 1 do
         if (#comboCounter["Set"][i] ~= #comboCounter["Set"][i + 1]) then
-            table.insert(combos, "Full House: " .. "3x" .. comboCounter["Set"][i] .. " + " .. "2x" .. comboCounter["Set"][i + 1])
+            table.insert(combos, "Full House: " .. "3x" .. comboCounter["Set"][i] .. " + " .. "2x" ..
+                comboCounter["Set"][i + 1])
         end
     end
 
     for i = 1, #comboCounter["Pair"] - 1 do
         if (comboCounter["Pair"][i] ~= comboCounter["Pair"][i + 1]) then
-            table.insert(combos, "Two pair: " .. "2x" .. comboCounter["Pair"][i] .. " + " .. "2x" .. comboCounter["Pair"][i + 1])
+            table.insert(combos, "Two pair: " .. "2x" .. comboCounter["Pair"][i] .. " + " .. "2x" ..
+                comboCounter["Pair"][i + 1])
         end
     end
 
@@ -161,36 +148,6 @@ function hasFlush()
     for value, count in pairs(counter) do
         if (count >= 5) then
             table.insert(combos, "Flush: " .. value)
-        end
-    end
-end
-
-function hasThreeOfAKind()
-    threeOfAKindCount = 0
-    local counter = {
-        ["Ace"] = 0,
-        ["King"] = 0,
-        ["Queen"] = 0,
-        ["Jack"] = 0,
-        ["10"] = 0,
-        ["9"] = 0,
-        ["8"] = 0,
-        ["7"] = 0,
-        ["6"] = 0,
-        ["5"] = 0,
-        ["4"] = 0,
-        ["3"] = 0,
-        ["2"] = 0
-    }
-
-    for i = 1, #G.hand.cards do
-        counter[G.hand.cards[i].base.value] = counter[G.hand.cards[i].base.value] + 1
-    end
-
-    for value, count in pairs(counter) do
-        if (count >= 3) then
-            threeOfAKindCount = threeOfAKindCount + 1
-            table.insert(combos, {"Three of a kind: " .. value .. "s"})
         end
     end
 end
@@ -216,66 +173,6 @@ local function sortByCardRank(a, b)
 end
 
 function hasStraight()
-    handASDASD = G.hand.cards
-    counterStraight = {
-        ["Ace"] = 0,
-        ["King"] = 0,
-        ["Queen"] = 0,
-        ["Jack"] = 0,
-        ["10"] = 0,
-        ["9"] = 0,
-        ["8"] = 0,
-        ["7"] = 0,
-        ["6"] = 0,
-        ["5"] = 0,
-        ["4"] = 0,
-        ["3"] = 0,
-        ["2"] = 0
-    }
-
-    local keys = {}
-    for k in pairs(counterStraight) do
-        table.insert(keys, k)
-    end
-
-    table.sort(keys, sortByCardRank)
-
-    for i = 1, #G.hand.cards do
-        counterStraight[G.hand.cards[i].base.value] = counterStraight[G.hand.cards[i].base.value] + 1
-    end
-
-    local straightLength = 0
-    local straight = {}
-
-    for _, key in ipairs(keys) do
-        if (straightLength == 5) then
-            table.insert(combos, "Straight: " .. straight[1] .. ',' .. straight[2] .. ',' .. straight[3] .. ',' ..
-                straight[4] .. ',' .. straight[5])
-            break
-        end
-        if (counterStraight[key] > 0) then
-            straightLength = straightLength + 1
-            if (key == "Jack" or key == "Queen" or key == "King" or key == "Ace") then
-                table.insert(straight, string.sub(key, 1, 1))
-
-            else
-                table.insert(straight, key)
-            end
-        else
-            straightLength = 0
-            straight = {}
-        end
-        if (straightLength == 4 and key == "2" and counterStraight["Ace"] > 0) then
-            table.insert(straight, "A")
-            table.insert(combos, "Straight: " .. straight[1] .. ',' .. straight[2] .. ',' .. straight[3] .. ',' ..
-                straight[4] .. ',' .. straight[5])
-        end
-    end
-
-end
-
-function hasFourOfAKind()
-    fourOfAKindCount = 0
     local counter = {
         ["Ace"] = 0,
         ["King"] = 0,
@@ -292,15 +189,51 @@ function hasFourOfAKind()
         ["2"] = 0
     }
 
+    local keys = {}
+    for k in pairs(counter) do
+        table.insert(keys, k)
+    end
+
+    table.sort(keys, sortByCardRank)
+
     for i = 1, #G.hand.cards do
         counter[G.hand.cards[i].base.value] = counter[G.hand.cards[i].base.value] + 1
     end
 
-    for value, count in pairs(counter) do
-        if (count == 4) then
-            fourOfAKindCount = fourOfAKindCount + 1
-            table.insert(combos, {"Four of a kind: " .. value .. "s"})
+    local straightLength = 0
+    local straight = {}
+
+    for _, key in ipairs(keys) do
+        if (straightLength == 5) then
+            table.insert(combos, "Straight: " .. straight[1] .. ',' .. straight[2] .. ',' .. straight[3] .. ',' ..
+                straight[4] .. ',' .. straight[5])
+            break
         end
+        if (counter[key] > 0) then
+            straightLength = straightLength + 1
+            if (key == "Jack" or key == "Queen" or key == "King" or key == "Ace") then
+                table.insert(straight, string.sub(key, 1, 1))
+
+            else
+                table.insert(straight, key)
+            end
+        else
+            straightLength = 0
+            straight = {}
+        end
+        if (straightLength == 4 and key == "2" and counter["Ace"] > 0) then
+            table.insert(straight, "A")
+            table.insert(combos, "Straight: " .. straight[1] .. ',' .. straight[2] .. ',' .. straight[3] .. ',' ..
+                straight[4] .. ',' .. straight[5])
+        end
+    end
+
+end
+
+function calculate()
+    if (G.STATE ~= G.STATES.MENU and G.hand.cards ~= nil) then
+        probabilities = {}
+        cards = G.hand.cards
     end
 end
 
@@ -310,6 +243,7 @@ function CardArea.align_cards(self)
 
     combos = {}
     checkHand()
+    calculate()
 end
 
 local card_ref = Card.click
