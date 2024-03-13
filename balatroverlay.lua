@@ -6,34 +6,28 @@
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
-local test_ref = love.draw
-function love.draw(self)
-    test_ref(self)
-
-    -- Desired dimensions (1920x1080 in this case)
+local resize_ref = love.resize
+function love.resize(self, w, h)
     local desiredWidth = 1920
     local desiredHeight = 1080
-
-    -- Get the current window size
+    
     local windowWidth = love.graphics.getWidth()
     local windowHeight = love.graphics.getHeight()
-
-    -- Calculate the scaling factor
+    
     local scaleX = windowWidth / desiredWidth
     local scaleY = windowHeight / desiredHeight
-    local scale = math.min(scaleX, scaleY) -- Use the smaller scale factor to ensure everything fits
-
-    -- Calculate the offsets
-    local xoffset = (windowWidth - desiredWidth * scale) / 2
-    local yoffset = (windowHeight - desiredHeight * scale) / 2
-
-    love.graphics.print(scale, 10, 30)
-    love.graphics.print(xoffset, 10, 50)
-    love.graphics.print(yoffset, 10, 70)
-    love.graphics.print(windowWidth, 10, 90)
-    love.graphics.print(windowHeight, 10, 110)
+    scale = math.min(scaleX, scaleY)
     
-    if (G.hand ~= nil) then
+    xoffset = (windowWidth - desiredWidth * scale) / 2
+    yoffset = (windowHeight - desiredHeight * scale) / 2
+    resize_ref(self, w, h)
+end
+
+local draw_ref = love.draw
+function love.draw(self)
+    draw_ref(self)
+
+    if (G.hand ~= nil and scale ~= nil) then
         -- Display overlay boxes
         local combo_box = "----------------------------\n" .. "|                           |\n" ..
                               "|                           |\n" .. "|                           |\n" ..
@@ -54,7 +48,8 @@ function love.draw(self)
                                       "|                           |\n" .. "----------------------------\n"
 
         -- Insert other states too
-        if (G.STATE ~= G.STATES.SHOP and G.STATE ~= G.STATES.BLIND_SELECT) then
+        if (not G.deck_preview and not G.OVERLAY_MENU and G.STATE ~= G.STATES.GAME_OVER and G.STATE ~=
+            G.STATES.NEW_ROUND and G.STATE ~= G.STATES.SHOP and G.STATE ~= G.STATES.BLIND_SELECT and G.STATE ~= G.STATES.ROUND_EVAL) then
             love.graphics.print(combo_box, 500 * scale + xoffset, 300 * scale + yoffset, 0, scale, scale)
             love.graphics.print(probabilities_box, 1650 * scale + xoffset, 300 * scale + yoffset, 0, scale, scale)
             love.graphics.print("Straight-Flush: ", 1670 * scale + xoffset, 330 * scale + yoffset, 0, scale, scale)
@@ -65,19 +60,19 @@ function love.draw(self)
             love.graphics.print("Three of a kind: ", 1670 * scale + xoffset, 480 * scale + yoffset, 0, scale, scale)
             love.graphics.print("Two pairs: ", 1670 * scale + xoffset, 510 * scale + yoffset, 0, scale, scale)
             love.graphics.print("Pair: ", 1670 * scale + xoffset, 540 * scale + yoffset, 0, scale, scale)
-        end
 
-        if (combos ~= nil or combos == {}) then
-            for i = 1, #combos do
-                love.graphics.print(combos[i], 520 * scale + xoffset, (300 + 20 * i) * scale + yoffset, 0, scale, scale)
+            if (combos ~= nil or combos == {}) then
+                for i = 1, #combos do
+                    love.graphics.print(combos[i], 520 * scale + xoffset, (300 + 20 * i) * scale + yoffset, 0, scale,
+                        scale)
+                end
             end
-        end
-        if (combos == {}) then
-            love.graphics.print("High card", 520 * scale + xoffset, 350 * scale + yoffset, 0, scale, scale)
+            if (combos == {}) then
+                love.graphics.print("High card", 520 * scale + xoffset, 350 * scale + yoffset, 0, scale, scale)
+            end
         end
     end
 
-    
 end
 
 function checkHand()
@@ -85,7 +80,7 @@ function checkHand()
         -- Add Flush House and check Flush Five
 
         hasFlush()
-        hasStraight() --Straight, Straight-Flush (No Royal Flush)
+        hasStraight() -- Straight, Straight-Flush (No Royal Flush)
         hasPairs() -- Two pair, Set, Full House, Four+Five of a kind
     end
 end
@@ -147,7 +142,7 @@ function hasPairs()
                     end
                     if (suitCounter == 5) then
                         break
-                    else 
+                    else
                         suitCounter = 0
                     end
                 end
@@ -183,6 +178,10 @@ function hasPairs()
             table.insert(combos, "Full House: " .. "3x" .. comboCounter["Set"][i] .. " + " .. "2x" ..
                 comboCounter["Set"][i + 1])
         end
+    end
+
+    for i = 1, #comboCounter["Set"] do
+        table.insert(combos, "Set: " .. "3x" .. comboCounter["Set"][i])
     end
 
     for i = 1, #comboCounter["Pair"] - 1 do
@@ -340,9 +339,9 @@ function pairProb()
 
 end
 
-local sec_ref = CardArea.align_cards
+local cardAlign_ref = CardArea.align_cards
 function CardArea.align_cards(self)
-    sec_ref(self)
+    cardAlign_ref(self)
 
     -- local handCards = G.hand.cards
     -- local deckCards = G.deck.cards
@@ -353,14 +352,14 @@ function CardArea.align_cards(self)
     checkHand()
 end
 
-local card_ref = Card.click
+local cardClick_ref = Card.click
 function Card.click(self)
 
     if self.area and self.area:can_highlight(self) then
         calculate()
     end
 
-    card_ref(self)
+    cardClick_ref(self)
 end
 
 ----------------------------------------------
