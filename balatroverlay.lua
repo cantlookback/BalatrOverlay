@@ -5,10 +5,34 @@
 --- MOD_DESCRIPTION: Helpful game overlay
 ----------------------------------------------
 ------------MOD CODE -------------------------
+
 local test_ref = love.draw
 function love.draw(self)
     test_ref(self)
 
+    -- Desired dimensions (1920x1080 in this case)
+    local desiredWidth = 1920
+    local desiredHeight = 1080
+
+    -- Get the current window size
+    local windowWidth = love.graphics.getWidth()
+    local windowHeight = love.graphics.getHeight()
+
+    -- Calculate the scaling factor
+    local scaleX = windowWidth / desiredWidth
+    local scaleY = windowHeight / desiredHeight
+    local scale = math.min(scaleX, scaleY) -- Use the smaller scale factor to ensure everything fits
+
+    -- Calculate the offsets
+    local xoffset = (windowWidth - desiredWidth * scale) / 2
+    local yoffset = (windowHeight - desiredHeight * scale) / 2
+
+    love.graphics.print(scale, 10, 30)
+    love.graphics.print(xoffset, 10, 50)
+    love.graphics.print(yoffset, 10, 70)
+    love.graphics.print(windowWidth, 10, 90)
+    love.graphics.print(windowHeight, 10, 110)
+    
     if (G.hand ~= nil) then
         -- Display overlay boxes
         local combo_box = "----------------------------\n" .. "|                           |\n" ..
@@ -31,27 +55,29 @@ function love.draw(self)
 
         -- Insert other states too
         if (G.STATE ~= G.STATES.SHOP and G.STATE ~= G.STATES.BLIND_SELECT) then
-            love.graphics.print(combo_box, 500, 300)
-            love.graphics.print(probabilities_box, 1650, 300)
-            love.graphics.print("Straight-Flush: ", 1670, 330)
-            love.graphics.print("Four of a kind: ", 1670, 360)
-            love.graphics.print("Full House: ", 1670, 390)
-            love.graphics.print("Flush: ", 1670, 420)
-            love.graphics.print("Straight: ", 1670, 450)
-            love.graphics.print("Three of a kind: ", 1670, 480)
-            love.graphics.print("Two pairs: ", 1670, 510)
-            love.graphics.print("Pair: ", 1670, 540)
+            love.graphics.print(combo_box, 500 * scale + xoffset, 300 * scale + yoffset, 0, scale, scale)
+            love.graphics.print(probabilities_box, 1650 * scale + xoffset, 300 * scale + yoffset, 0, scale, scale)
+            love.graphics.print("Straight-Flush: ", 1670 * scale + xoffset, 330 * scale + yoffset, 0, scale, scale)
+            love.graphics.print("Four of a kind: ", 1670 * scale + xoffset, 360 * scale + yoffset, 0, scale, scale)
+            love.graphics.print("Full House: ", 1670 * scale + xoffset, 390 * scale + yoffset, 0, scale, scale)
+            love.graphics.print("Flush: ", 1670 * scale + xoffset, 420 * scale + yoffset, 0, scale, scale)
+            love.graphics.print("Straight: ", 1670 * scale + xoffset, 450 * scale + yoffset, 0, scale, scale)
+            love.graphics.print("Three of a kind: ", 1670 * scale + xoffset, 480 * scale + yoffset, 0, scale, scale)
+            love.graphics.print("Two pairs: ", 1670 * scale + xoffset, 510 * scale + yoffset, 0, scale, scale)
+            love.graphics.print("Pair: ", 1670 * scale + xoffset, 540 * scale + yoffset, 0, scale, scale)
         end
 
         if (combos ~= nil or combos == {}) then
             for i = 1, #combos do
-                love.graphics.print(combos[i], 520, 300 + 20 * i)
+                love.graphics.print(combos[i], 520 * scale + xoffset, (300 + 20 * i) * scale + yoffset, 0, scale, scale)
             end
         end
         if (combos == {}) then
-            love.graphics.print("High card", 520, 350)
+            love.graphics.print("High card", 520 * scale + xoffset, 350 * scale + yoffset, 0, scale, scale)
         end
     end
+
+    
 end
 
 function checkHand()
