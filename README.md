@@ -1,10 +1,10 @@
 # BalatrOverlay
 
-## Overlay mod for game "Balatro" writen on lua
+## Overlay mod for game "Balatro" written on lua
 
 ### What this mod allows (and will allow)
 
-    1. See the combinations in the hand. (WIP)
+    1. See the combinations in the hand. (remained Flush House)
     2. Calculate the odds of each combination falling out when the hand is discarded (WIP)
     3. Calculating the chips the hand will bring (WIP)
 
