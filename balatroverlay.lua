@@ -820,6 +820,13 @@ function evaluatePlay()
     end
 end
 
+local draw_ref = G.FUNCS.draw_from_discard_to_deck
+function G.FUNCS.draw_from_discard_to_deck(self, e)
+    draw_ref(self, e)
+    mult = 0
+    hand_chips = 0
+end
+
 local sec_ref = CardArea.align_cards
 function CardArea.align_cards(self)
     sec_ref(self)
@@ -829,9 +836,6 @@ function CardArea.align_cards(self)
 
     probabilities = {}
     combos = {}
-
-    mult = 0
-    hand_chips = 0
 
     checkHand()
 end
