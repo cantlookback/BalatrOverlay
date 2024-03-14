@@ -30,8 +30,8 @@ function love.draw(self)
     if (G.hand ~= nil and scale ~= nil) then
         -- Display overlay boxes and data
 
-        if (not G.deck_preview and not G.OVERLAY_MENU and G.STATE ~= G.STATES.GAME_OVER and G.STATE ~=
-            G.STATES.NEW_ROUND and G.STATE ~= G.STATES.SHOP and G.STATE ~= G.STATES.BLIND_SELECT and G.STATE ~=
+        if (not G.deck_preview and not G.OVERLAY_MENU and G.STATE == G.STATES.SELECTING_HAND or G.STATE ==
+            G.STATES.HAND_PLAYED or G.STATE == G.STATES.DRAW_TO_HAND or G.STATE == G.STATES.PLAY_TAROT or G.STATE ==
             G.STATES.ROUND_EVAL) then
 
             -- BOX SECTION
@@ -837,8 +837,8 @@ minmax = {
 local draw_ref = G.FUNCS.draw_from_discard_to_deck
 function G.FUNCS.draw_from_discard_to_deck(self, e)
     draw_ref(self, e)
-    mult = 0
-    hand_chips = 0
+    minmax["min"] = 0
+    minmax["max"] = 0
 end
 
 local sec_ref = CardArea.align_cards
