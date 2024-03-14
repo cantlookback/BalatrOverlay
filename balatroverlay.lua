@@ -34,8 +34,9 @@ function love.draw(self)
             G.STATES.NEW_ROUND and G.STATE ~= G.STATES.SHOP and G.STATE ~= G.STATES.BLIND_SELECT and G.STATE ~=
             G.STATES.ROUND_EVAL) then
 
-            -- Boxes
+            -- BOX SECTION
             love.graphics.setColor(1, 1, 1, 0.5)
+
             -- Combo box
             love.graphics.draw(G.ASSET_ATLAS["centers"].image, quad, 500 * scale + xoffset, 300 * scale + yoffset, 0,
                 scale * 3.5, scale * 3)
@@ -48,8 +49,9 @@ function love.draw(self)
             love.graphics.draw(G.ASSET_ATLAS["centers"].image, quad, 800 * scale + xoffset, 300 * scale + yoffset, 0,
                 scale * 5, scale)
 
-            -- Data
+            -- DATA SECTION
             love.graphics.setColor(0, 0, 0, 1)
+
             -- Combos
             if (combos ~= nil) then
                 for i = 1, #combos do
@@ -69,9 +71,15 @@ function love.draw(self)
             love.graphics.print("Pair: ", 1670 * scale + xoffset, 530 * scale + yoffset, 0, scale, scale)
 
             -- Evaluate hand
-            if (hand_chips ~= nil) then
-                love.graphics.print(hand_chips * mult .. " Chips", 860 * scale + xoffset, 325 * scale + yoffset, 0,
-                    scale * 2, scale * 2)
+            if (minmax ~= nil) then
+                if (minmax["min"] == minmax["max"]) then
+                    love.graphics.printf(minmax["min"] .. " Chips", 800 * scale + xoffset, 325 * scale + yoffset,
+                        72 * scale * 5 / 1.5, "center", 0, scale * 1.5, scale * 1.5)
+                else
+                    love.graphics.printf(minmax["min"] .. " to " .. minmax["max"] .. " Chips", 800 * scale + xoffset,
+                        325 * scale + yoffset, 72 * scale * 5 / 1.5, "center", 0, scale * 1.5, scale * 1.5)
+
+                end
             end
 
         end
@@ -818,7 +826,13 @@ function evaluatePlay()
             percent = percent + percent_delta
         end
     end
+    return hand_chips * mult
 end
+
+minmax = {
+    ["min"] = 0,
+    ["max"] = 0
+}
 
 local draw_ref = G.FUNCS.draw_from_discard_to_deck
 function G.FUNCS.draw_from_discard_to_deck(self, e)
@@ -836,7 +850,6 @@ function CardArea.align_cards(self)
 
     probabilities = {}
     combos = {}
-
     checkHand()
 end
 
@@ -844,8 +857,21 @@ local card_ref = Card.click
 function Card.click(self)
 
     card_ref(self)
+    result = 0
+
     if (#G.hand.highlighted ~= 0) then
-        evaluatePlay()
+        result = evaluatePlay()
+        minmax["min"] = result
+        minmax["max"] = result
+        for i = 1, 49 do
+            result = evaluatePlay()
+            if (result < minmax["min"]) then
+                minmax["min"] = result
+            elseif (result > minmax["max"]) then
+                minmax["max"] = result
+            end
+        end
+
     end
 
 end
