@@ -383,10 +383,6 @@ end
 function evaluatePlay()
     text, disp_text, poker_hands, scoring_hand, non_loc_disp_text = G.FUNCS.get_poker_hand_info(G.hand.highlighted)
 
-    G.GAME.hands[text].played = G.GAME.hands[text].played + 1
-    G.GAME.hands[text].played_this_round = G.GAME.hands[text].played_this_round + 1
-    G.GAME.last_hand_played = text
-    set_hand_usage(text)
     G.GAME.hands[text].visible = true
 
     -- Add all the pure bonus cards to the scoring hand
@@ -858,20 +854,21 @@ function Card.click(self)
 
     card_ref(self)
     result = 0
-
-    if (#G.hand.highlighted ~= 0) then
-        result = evaluatePlay()
-        minmax["min"] = result
-        minmax["max"] = result
-        for i = 1, 49 do
+    if self.area and self.area:can_highlight(self) then
+        if (#G.hand.highlighted ~= 0) then
             result = evaluatePlay()
-            if (result < minmax["min"]) then
-                minmax["min"] = result
-            elseif (result > minmax["max"]) then
-                minmax["max"] = result
+            minmax["min"] = result
+            minmax["max"] = result
+            for i = 1, 49 do
+                result = evaluatePlay()
+                if (result < minmax["min"]) then
+                    minmax["min"] = result
+                elseif (result > minmax["max"]) then
+                    minmax["max"] = result
+                end
             end
-        end
 
+        end
     end
 
 end
