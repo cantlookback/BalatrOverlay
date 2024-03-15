@@ -5,6 +5,14 @@
 --- MOD_DESCRIPTION: Helpful game overlay
 ----------------------------------------------
 ------------MOD CODE -------------------------
+
+-- CONFIG VARIABLES
+-------------------
+combo_conf = false
+chips_calc_conf = false
+probability_calc_conf = false
+-------------------
+
 local load_ref = love.resize
 function love.resize(self, w, h)
     local desiredWidth = 1920
@@ -38,22 +46,28 @@ function love.draw(self)
             love.graphics.setColor(1, 1, 1, 0.5)
 
             -- Combo box
-            love.graphics.draw(G.ASSET_ATLAS["centers"].image, quad, 500 * scale + xoffset, 300 * scale + yoffset, 0,
-                scale * 3.5, scale * 3)
+            if (combo_conf) then
+                love.graphics.draw(G.ASSET_ATLAS["centers"].image, quad, 500 * scale + xoffset, 300 * scale + yoffset,
+                    0, scale * 3.5, scale * 3)
+            end
 
             -- Probabilities box
-            love.graphics.draw(G.ASSET_ATLAS["centers"].image, quad, 1650 * scale + xoffset, 300 * scale + yoffset, 0,
-                scale * 3.5, scale * 3)
+            if (probability_calc_conf) then
+                love.graphics.draw(G.ASSET_ATLAS["centers"].image, quad, 1650 * scale + xoffset, 300 * scale + yoffset,
+                    0, scale * 3.5, scale * 3)
+            end
 
             -- Evaluate box
-            love.graphics.draw(G.ASSET_ATLAS["centers"].image, quad, 800 * scale + xoffset, 300 * scale + yoffset, 0,
-                scale * 5, scale)
+            if (chips_calc_conf) then
+                love.graphics.draw(G.ASSET_ATLAS["centers"].image, quad, 800 * scale + xoffset, 300 * scale + yoffset,
+                    0, scale * 5, scale)
+            end
 
             -- DATA SECTION
             love.graphics.setColor(0, 0, 0, 1)
 
             -- Combos
-            if (combos ~= nil) then
+            if (combos ~= nil and combo_conf) then
                 for i = 1, #combos do
                     love.graphics.print(combos[i], 510 * scale + xoffset, (300 + 20 * i) * scale + yoffset, 0, scale,
                         scale)
@@ -61,17 +75,19 @@ function love.draw(self)
             end
 
             -- Probabilities
-            love.graphics.print("Straight-Flush: ", 1670 * scale + xoffset, 320 * scale + yoffset, 0, scale, scale)
-            love.graphics.print("Four of a Kind: ", 1670 * scale + xoffset, 350 * scale + yoffset, 0, scale, scale)
-            love.graphics.print("Full House: ", 1670 * scale + xoffset, 380 * scale + yoffset, 0, scale, scale)
-            love.graphics.print("Flush: ", 1670 * scale + xoffset, 410 * scale + yoffset, 0, scale, scale)
-            love.graphics.print("Straight: ", 1670 * scale + xoffset, 440 * scale + yoffset, 0, scale, scale)
-            love.graphics.print("Three of a Kind: ", 1670 * scale + xoffset, 470 * scale + yoffset, 0, scale, scale)
-            love.graphics.print("Two Pair: ", 1670 * scale + xoffset, 500 * scale + yoffset, 0, scale, scale)
-            love.graphics.print("Pair: ", 1670 * scale + xoffset, 530 * scale + yoffset, 0, scale, scale)
+            if (probability_calc_conf) then
+                love.graphics.print("Straight-Flush: ", 1670 * scale + xoffset, 320 * scale + yoffset, 0, scale, scale)
+                love.graphics.print("Four of a Kind: ", 1670 * scale + xoffset, 350 * scale + yoffset, 0, scale, scale)
+                love.graphics.print("Full House: ", 1670 * scale + xoffset, 380 * scale + yoffset, 0, scale, scale)
+                love.graphics.print("Flush: ", 1670 * scale + xoffset, 410 * scale + yoffset, 0, scale, scale)
+                love.graphics.print("Straight: ", 1670 * scale + xoffset, 440 * scale + yoffset, 0, scale, scale)
+                love.graphics.print("Three of a Kind: ", 1670 * scale + xoffset, 470 * scale + yoffset, 0, scale, scale)
+                love.graphics.print("Two Pair: ", 1670 * scale + xoffset, 500 * scale + yoffset, 0, scale, scale)
+                love.graphics.print("Pair: ", 1670 * scale + xoffset, 530 * scale + yoffset, 0, scale, scale)
+            end
 
             -- Evaluate hand
-            if (minmax ~= nil) then
+            if (minmax ~= nil and chips_calc_conf) then
                 if (minmax["min"] == minmax["max"]) then
                     love.graphics.printf(minmax["min"] .. " Chips", 800 * scale + xoffset, 325 * scale + yoffset,
                         72 * scale * 5 / 1.5, "center", 0, scale * 1.5, scale * 1.5)
@@ -843,10 +859,11 @@ function CardArea.align_cards(self)
 
     -- local handCards = G.hand.cards
     -- local deckCards = G.deck.cards
-
-    probabilities = {}
-    combos = {}
-    checkHand()
+    if (combo_conf) then
+        probabilities = {}
+        combos = {}
+        checkHand()
+    end
 end
 
 local card_ref = Card.click
@@ -854,20 +871,22 @@ function Card.click(self)
 
     card_ref(self)
     result = 0
-    if self.area and self.area:can_highlight(self) then
-        if (#G.hand.highlighted ~= 0) then
-            result = evaluatePlay()
-            minmax["min"] = result
-            minmax["max"] = result
-            for i = 1, 49 do
+    if (chips_calc_conf) then
+        if self.area and self.area:can_highlight(self) then
+            if (#G.hand.highlighted ~= 0) then
                 result = evaluatePlay()
-                if (result < minmax["min"]) then
-                    minmax["min"] = result
-                elseif (result > minmax["max"]) then
-                    minmax["max"] = result
+                minmax["min"] = result
+                minmax["max"] = result
+                for i = 1, 49 do
+                    result = evaluatePlay()
+                    if (result < minmax["min"]) then
+                        minmax["min"] = result
+                    elseif (result > minmax["max"]) then
+                        minmax["max"] = result
+                    end
                 end
-            end
 
+            end
         end
     end
 
